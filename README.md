@@ -303,7 +303,7 @@ api.getDeviceInfo(context) {
 
 ## 1.8. Жишээ код
 
-[Жишээ код (Java) - Татах](/apis/files/PayProDemo.zip)
-[Жишээ код (Kotlin) - Татах](/apis/files/PayProDemo.zip)
+[Жишээ код (Java) - Татах](/apis/files/payprodemojava.zip)
+[Жишээ код (Kotlin) - Татах](/apis/files/paypro-demo.zip)
 
 [==============]

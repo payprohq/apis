@@ -28,28 +28,14 @@ Payment app->Client app: Гүйлгээний хариу
 build.gradle файл дээр доорх байдлаар нэмж, sync хийх
 
 ```
-implementation 'mn.lambda:paypro-sdk:1.0.28'
+implementation 'mn.lambda:paypro-sdk:1.0.42'
 ```
 
 ## 1.4. SDK функцуудтай ажиллах
 
 PayProApi class нь SDK функцуудыг агуулсан байна.
 
-### 1.4.1. PayProApi instance үүсгэх
-
-PayProApi instance дараах байдлаар үүсгэнэ
-
-```
-val api = PayProApi(bank: String)
-```
-
-#### 1.4.1.1. Instance үүсгэхэд шаардлагатай параметрүүд
-
-| Параметр | Төрөл  | Тайлбар                                                                                                                        |
-| -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| bank     | string | Аль банкны пос төрөөрөмж дээр холболт хийж байгаагаас хамааран утгыг дамжуулна. Зөвхөн дараах утгуудаас сонгон дамжуулах `хас` |
-
-### 1.4.2. SDK функцыг дуудаж ашиглах
+### 1.4.1. SDK функцыг дуудаж ашиглах
 
 ```
 class PayProApi {
@@ -62,7 +48,7 @@ class PayProApi {
 }
 ```
 
-### 1.4.3. Хүсэлтийн хариуг хүлээж авах
+### 1.4.2. Хүсэлтийн хариуг хүлээж авах
 
 Callback функцын үрд дүнд ирж байгаа хариуг Амжилттай болон Амжилтгүй биелсэн эсэхийг дараах байдлаар шалгаж боловсруулна
 
@@ -81,17 +67,18 @@ api.doSomething(context) {
 }
 ```
 
-## 1.5. Картын гүйлгээ хийх
+## 1.5. Гүйлгээ хийх
 
-Картын гүйлгээ хийх функц.
+Гүйлгээ хийх функц.
 
 ```
 class PayProApi {
     ...
-    fun cardPayment(
+    fun payment(
         context: Context,
         amount: Double, // Гүйлгээний дүн
-        callback: (PayProResponse<CardPaymentResult>) -> Unit // Гүйлгээний хариу хүлээж авах callback
+        options: PaymentOptions,
+        callback: (PayProResponse<PaymentResult>) -> Unit // Гүйлгээний хариу хүлээж авах callback
     )
     ...
 }
@@ -101,22 +88,41 @@ class PayProApi {
 
 ### 1.5.1. Гүйлгээ хийхэд шаардлагатай параметрүүд
 
-| Параметр | Төрөл  | Тайлбар          |
-| -------- | ------ | ---------------- |
-| amount   | double | Гүйлгээ хийх дүн |
+| Параметр | Төрөл          | Тайлбар                     |
+| -------- | -------------- | --------------------------- |
+| amount   | double         | Гүйлгээ хийх дүн            |
+| options  | PaymentOptions | Гүйлгээ хийх options утгууд |
+
+`PaymentOptions` class нь дараах бүтэцтэй байна
+
+```
+class PaymentOptions(
+    val payment: Int, // Төлбөрийн хэрэгслийн төрөл,
+    val skipPrint: Boolean // Баримт хэвлэх эсэх
+)
+```
+
+### 1.5.2. Төлбөрийн хэрэгслийн утга
+
+| Утга | Төрөл                        | Тайлбар                                                         |
+| ---- | ---------------------------- | --------------------------------------------------------------- |
+| 0    | Төлбөрийн хэрэгсэл сонгоогүй | Боломжит бүх төлбөрийн хэрэгслийн сонголтууд пос дээр гарч ирнэ |
+| 1    | Карт                         | Зөвхөн картын гүйлгээ хийх үед                                  |
+| 3    | SocialPay                    | Зөвхөн SocialPay - QR код ашиглан гүйлгээ хийх үед              |
+| 4    | Monpay                       | Зөвхөн Monpay - QR код ашиглан гүйлгээ хийх үед                 |
 
 [==============]
 
-### 1.5.2. Гүйлгээний хариу - Амжилттай
+### 1.5.3. Гүйлгээний хариу - Амжилттай
 
 Гүйлгээ амжилттай болсон үед `PayProResponse.Success` төрөлтэй хариу ирэх байх ба гүйлгээний мэдээллийг `data` талбараас авна.
 
 ```
-api.cardPayment(context, amount) {
+api.payment(context, amount, options) {
     when(it) {
         is PayProResponse.Success -> {
             // Амжилттай
-            val data = it.data // CardPaymentResult төрөлтэй байна
+            val data = it.data // PaymentResult төрөлтэй байна
         }
         is PayProResponse.Error -> {
             // Амжилтгүй
@@ -126,10 +132,10 @@ api.cardPayment(context, amount) {
 
 ```
 
-`CardPaymentResult` class нь дараа бүтэцтэй байна
+`PaymentResult` class нь дараах бүтэцтэй байна
 
 ```
-class CardPaymentResult(
+class PaymentResult(
     val merchantId: String, // Мерчант дугаар
     val terminalId: String, // Терминал дугаар
     val amount: Double, // Гүйлгээ хийсэн дүн
@@ -142,7 +148,7 @@ class CardPaymentResult(
 )
 ```
 
-### 1.5.3. Гүйлгээний хариу - Амжилтгүй
+### 1.5.4. Гүйлгээний хариу - Амжилтгүй
 
 Амжилтгүй болсон үед `PayProResponse.Error` төрөлтэй хариу ирнэ. Шалтгааныг `message` талбараас авна.
 

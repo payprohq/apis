@@ -167,7 +167,99 @@ api.cardPayment(context, amount) {
 
 [==============]
 
-## 1.6. Баримт хэвлэх
+## 1.6. Гүйлгээ буцаах
+
+---
+
+[==============]
+
+## 1.7. Өндөрлөгөө хийх
+
+Өндөрлөгөө хийх функц.
+
+```
+class PayProApi {
+    ...
+    fun settlementStart(
+        context: Context,
+        callback: (PayProResponse<SettlementResult>) -> Unit // Өндөрлөгөөний хариу хүлээж авах callback
+    )
+    ...
+}
+```
+
+[==============]
+
+### 1.7.1. Өндөрлөгөөний хариу - Амжилттай
+
+Өндөрлөгөө амжилттай болсон үед `PayProResponse.Success` төрөлтэй хариу ирэх байх ба өндөрлөгөө мэдээллийг `data` талбараас авна.
+
+```
+api.settlementStart(context, amount, options) {
+    when(it) {
+        is PayProResponse.Success -> {
+            // Амжилттай
+            val data = it.data // SettlementResult төрөлтэй байна
+        }
+        is PayProResponse.Error -> {
+            // Амжилтгүй
+        }
+    }
+}
+
+```
+
+`SettlementResult` class нь дараах бүтэцтэй байна
+
+```
+class SettlementResult(
+    val merchantId: String, // Мерчант дугаар
+    val terminalId: String, // Терминал дугаар
+    val amount: Double, // Гүйлгээ хийсэн дүн
+    val count: Int, // Гүйлгээний тоо
+    val settlementAmount: Double?, // Дансанд орох дүн
+    val date: String, // Гүйлгээ хийгдсэн огноо
+    val no: Int, // Нэгтгэл дугаар
+)
+```
+
+### 1.7.2. Гүйлгээний хариу - Амжилтгүй
+
+Амжилтгүй болсон үед `PayProResponse.Error` төрөлтэй хариу ирнэ. Шалтгааныг `message` талбараас авна.
+
+```
+api.settlementStart(context, amount) {
+    when(it) {
+        is PayProResponse.Success -> {
+        }
+        is PayProResponse.Error -> {
+            // Амжилтгүй
+            println("алдаа: ${it.message}")
+        }
+    }
+}
+```
+
+[==============]
+
+## 1.8. Гүйлгээний жагсаалт
+
+Гүйлгээний жагсаалт харах функц.
+
+```
+class PayProApi {
+    ...
+    fun transactionList(
+        context: Context,
+        callback: (PayProResponse<Empty>) -> Unit
+    )
+    ...
+}
+```
+
+[==============]
+
+## 1.9. Баримт хэвлэх
 
 POS төхөөрөмж дээр баримт хэвлэх үед ашиглана. Баримт хэвлэх талаар дэлгэрэнгүй жишээг Демо кодноос харна уу.
 
@@ -183,13 +275,13 @@ class PayProApi {
 }
 ```
 
-### 1.6.1. Баримт хэвлэхэд шаардлагатай параметрүүд
+### 1.9.1. Баримт хэвлэхэд шаардлагатай параметрүүд
 
 | Параметр | Төрөл  | Тайлбар                                                                     |
 | -------- | ------ | --------------------------------------------------------------------------- |
 | payload  | string | Хэвлэх мэдээллийг `json` форматтайгаар дамжуулна, жишээ кодтой танилцана уу |
 
-### 1.6.2. Баримт Амжилттай хэвлэгдэх
+### 1.9.2. Баримт Амжилттай хэвлэгдэх
 
 Баримт амжилттай хэвлэгдсэн үед `PayProResponse.Success` төрөлтэй хариу ирнэ.
 
@@ -205,7 +297,7 @@ api.print(context, payload) {
 }
 ```
 
-### 1.6.3. Баримт хэвлэлт амжилтгүй болох
+### 1.9.3. Баримт хэвлэлт амжилтгүй болох
 
 Баримтын цаас дууссан эсвэл бусад тохиолдолд `PayProResponse.Error` төрөлтэй хариу ирнэ. Шалтгааныг `message` талбараас авна.
 
@@ -224,7 +316,13 @@ api.print(context, payload) {
 
 [==============]
 
-## 1.7. ПОС Төхөөрөмжийн мэдээлэл авах
+## 1.10. Баримт хэвлэх (With PayPRO UI)
+
+---
+
+[==============]
+
+## 1.11. ПОС Төхөөрөмжийн мэдээлэл авах
 
 Пос төхөөрөмжийн мэдээлэл авах
 
@@ -241,7 +339,7 @@ class PayProApi {
 
 [==============]
 
-### 1.7.1. Төхөөрөмжийн мэдээлэл - Амжилттай
+### 1.11.1. Төхөөрөмжийн мэдээлэл - Амжилттай
 
 Төхөөрөмжийн мэдээлэл амжилттай авсан үед `PayProResponse.Success` төрөлтэй хариу ирэх байх ба төхөөрөмжийн мэдээллийг `data` талбараас авна.
 
@@ -268,7 +366,7 @@ class DeviceInfo(
 )
 ```
 
-### 1.7.2. Төхөөрөмжийн мэдээлэл - Амжилтгүй
+### 1.11.2. Төхөөрөмжийн мэдээлэл - Амжилтгүй
 
 Амжилтгүй болсон үед `PayProResponse.Error` төрөлтэй хариу ирнэ. Шалтгааныг `message` талбараас авна.
 
@@ -285,7 +383,7 @@ api.getDeviceInfo(context) {
 }
 ```
 
-## 1.8. NFC картын сериал дугаар авах
+## 1.12. NFC картын сериал дугаар авах
 
 NFC картын сериал дугаар авах үед дараах функцыг дуудна
 
@@ -303,7 +401,7 @@ class PayProApi {
 
 [==============]
 
-### 1.8.1. NFC карт - Амжилттай
+### 1.12.1. NFC карт - Амжилттай
 
 NFC карт амжилттай уншигдсан үед `PayProResponse.Success` төрөлтэй хариу ирэх байх ба картын мэдээллийг `data` талбараас авна.
 
@@ -330,12 +428,154 @@ class NFCCard(
 )
 ```
 
-### 1.8.2. NFC карт - Амжилтгүй
+### 1.12.2. NFC карт - Амжилтгүй
 
 Амжилтгүй болсон үед `PayProResponse.Error` төрөлтэй хариу ирнэ. Шалтгааныг `message` талбараас авна.
 
 ```
-api.getDeviceInfo(context) {
+api.readCardUID(context) {
+    when(it) {
+        is PayProResponse.Success -> {
+        }
+        is PayProResponse.Error -> {
+            // Амжилтгүй
+            println("алдаа: ${it.message}")
+        }
+    }
+}
+```
+
+[==============]
+
+## 1.13. Туузан картын мэдээлэл авах
+
+Туузан картын мэдээлэл авах үед дараах функцыг дуудна
+
+```
+class PayProApi {
+    ...
+    fun readMagCard(
+        context: Context,
+        timeout: Int,
+        callback: (PayProResponse<MagCard>) -> Unit // NFC картын мэдээлэл хүлээж авах callback
+    )
+    ...
+}
+```
+
+[==============]
+
+### 1.13.1. Туузан карт - Амжилттай
+
+Туузан карт амжилттай уншигдсан үед `PayProResponse.Success` төрөлтэй хариу ирэх байх ба картын мэдээллийг `data` талбараас авна.
+
+```
+api.readMagCard(context, timeout) {
+    when(it) {
+        is PayProResponse.Success -> {
+            // Амжилттай
+            val data = it.data // MagCard төрөлтэй байна
+        }
+        is PayProResponse.Error -> {
+            // Амжилтгүй
+        }
+    }
+}
+
+```
+
+`MagCard` class нь дараа бүтэцтэй байна
+
+```
+class MagCard(
+    val track1: String, // track1
+    val track2: String, // track2
+    val track3: String, // track3
+)
+```
+
+### 1.13.2. Туузан карт - Амжилтгүй
+
+Амжилтгүй болсон үед `PayProResponse.Error` төрөлтэй хариу ирнэ. Шалтгааныг `message` талбараас авна.
+
+```
+api.readMagCard(context) {
+    when(it) {
+        is PayProResponse.Success -> {
+        }
+        is PayProResponse.Error -> {
+            // Амжилтгүй
+            println("алдаа: ${it.message}")
+        }
+    }
+}
+```
+
+[==============]
+
+## 1.14. Иргэний үнэмлэхийн мэдээлэл унших
+
+Иргэний үнэмлэхийн мэдээлэл унших үед дараах функцыг дуудна
+
+```
+class PayProApi {
+    ...
+    fun readIDCard(
+        context: Context,
+        timeout: Int,
+        callback: (PayProResponse<IDCard>) -> Unit // Иргэний үнэмлэхийн мэдээлэл хүлээж авах callback
+    )
+    ...
+}
+```
+
+[==============]
+
+### 1.14.1. Иргэний үнэмлэхийн мэдээлэл - Амжилттай
+
+Иргэний үнэмлэхийн мэдээлэл амжилттай уншигдсан үед `PayProResponse.Success` төрөлтэй хариу ирэх байх ба Иргэний үнэмлэхийн мэдээллийг `data` талбараас авна.
+
+```
+api.readIDCard(context, timeout) {
+    when(it) {
+        is PayProResponse.Success -> {
+            // Амжилттай
+            val data = it.data // IDCard төрөлтэй байна
+        }
+        is PayProResponse.Error -> {
+            // Амжилтгүй
+        }
+    }
+}
+
+```
+
+`IDCard` class нь дараа бүтэцтэй байна
+
+```
+class IDCard(
+    var givenName: String? = null
+    var registrationNumber: String? = null
+    var dateOfBirth: String? = null
+    var sex: String? = null
+    var surname: String? = null
+    var familyName: String? = null
+    var dateOfExpiry: String? = null
+    var dateOfIssue: String? = null
+    var issuingAuthority: String? = null
+    var birthPlace: String? = null
+    var civilID: String? = null
+    var idCardNum: String? = null
+    var address: String? = null
+)
+```
+
+### 1.14.2. Иргэний үнэмлэхийн мэдээлэл - Амжилтгүй
+
+Амжилтгүй болсон үед `PayProResponse.Error` төрөлтэй хариу ирнэ. Шалтгааныг `message` талбараас авна.
+
+```
+api.readIDCard(context) {
     when(it) {
         is PayProResponse.Success -> {
         }

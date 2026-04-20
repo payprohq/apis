@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>PayPro - Push ECR Demo</title>
+        <link rel="stylesheet" href="./styles.css" />
+    </head>
+    <body>
+        <main class="app-shell">
+            <section class="workspace" aria-labelledby="page-title">
+                <section class="request-form">
+                    <aside class="panel sidebar">
+                        <div class="sidebar-heading">
+                            <h2>PayPro - Push ECR Demo</h2>
+                        </div>
+                        <label>
+                            API base URL
+                            <input
+                                id="base-url"
+                                name="baseUrl"
+                                type="url"
+                                required
+                            />
+                        </label>
+                        <label>
+                            Client ID
+                            <input
+                                id="client-id"
+                                name="clientId"
+                                type="text"
+                                autocomplete="off"
+                                required
+                            />
+                        </label>
+                        <label>
+                            API key
+                            <input
+                                id="api-key"
+                                name="apiKey"
+                                type="password"
+                                autocomplete="off"
+                                required
+                            />
+                        </label>
+                        <label>
+                            Terminal IDs
+                            <textarea
+                                id="terminal-ids"
+                                name="terminalIds"
+                                rows="5"
+                                autocomplete="off"
+                                required
+                            ></textarea>
+                        </label>
+                        <div class="terminal-tools">
+                            <span id="terminal-count">1 terminal</span>
+                            <button type="button" id="dedupe-terminals">
+                                Clean list
+                            </button>
+                            <button type="button" id="refresh-tabs">
+                                Refresh
+                            </button>
+                        </div>
+                    </aside>
+
+                    <section
+                        class="panel terminal-board"
+                        aria-label="Terminal workspaces"
+                    >
+                        <div
+                            class="terminal-tabs"
+                            id="terminal-tabs"
+                            role="tablist"
+                        ></div>
+                        <div id="terminal-panels"></div>
+                    </section>
+                </section>
+
+                <template id="terminal-panel-template">
+                    <section class="terminal-panel" role="tabpanel">
+                        <div class="tab-content-grid">
+                            <fieldset class="panel nested-panel">
+                                <legend data-terminal-title>Command</legend>
+                                <div
+                                    class="command-grid"
+                                    role="radiogroup"
+                                    aria-label="ECR command"
+                                >
+                                    <label
+                                        ><input
+                                            type="radio"
+                                            data-command
+                                            value="purchase"
+                                            checked
+                                        />Purchase</label
+                                    >
+                                    <label
+                                        ><input
+                                            type="radio"
+                                            data-command
+                                            value="void"
+                                        />Void</label
+                                    >
+                                    <label
+                                        ><input
+                                            type="radio"
+                                            data-command
+                                            value="inquiry"
+                                        />Inquiry</label
+                                    >
+                                    <label
+                                        ><input
+                                            type="radio"
+                                            data-command
+                                            value="settlement"
+                                        />Settlement</label
+                                    >
+                                    <label
+                                        ><input
+                                            type="radio"
+                                            data-command
+                                            value="healthcheck"
+                                        />Healthcheck</label
+                                    >
+                                </div>
+
+                                <div class="field-grid">
+                                    <label data-field="amount">
+                                        Amount
+                                        <input
+                                            data-input="amount"
+                                            type="number"
+                                            min="0.01"
+                                            step="0.01"
+                                            value="1.10"
+                                        />
+                                    </label>
+                                    <label data-field="payment">
+                                        Payment
+                                        <select data-input="payment">
+                                            <option value="1">1 - Card</option>
+                                            <option value="4">
+                                                4 - SocialPay QR
+                                            </option>
+                                            <option value="7">
+                                                7 - Monpay QR
+                                            </option>
+                                        </select>
+                                    </label>
+                                    <label data-field="referralcode">
+                                        Referral code
+                                        <input
+                                            data-input="referralcode"
+                                            type="text"
+                                            autocomplete="off"
+                                        />
+                                    </label>
+                                    <label data-field="traceno">
+                                        Trace no
+                                        <input
+                                            data-input="traceno"
+                                            type="text"
+                                            autocomplete="off"
+                                        />
+                                    </label>
+                                    <label
+                                        class="checkbox-row"
+                                        data-field="skipPrint"
+                                    >
+                                        <input
+                                            data-input="skipPrint"
+                                            type="checkbox"
+                                            checked
+                                        />
+                                        Skip print
+                                    </label>
+                                </div>
+
+                                <div class="actions">
+                                    <span class="status-pill terminal-status"
+                                        >Ready</span
+                                    >
+                                    <button
+                                        type="button"
+                                        data-action="generate-ref"
+                                    >
+                                        Generate ref
+                                    </button>
+                                    <button type="button" data-action="cancel">
+                                        Cancel
+                                    </button>
+                                    <button type="button" data-action="send">
+                                        Send request
+                                    </button>
+                                </div>
+                            </fieldset>
+
+                            <article class="output-panel">
+                                <div class="output-heading">
+                                    <h2>Request</h2>
+                                    <button
+                                        type="button"
+                                        data-action="copy-request"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
+                                <pre data-output="request">{}</pre>
+                            </article>
+
+                            <article class="output-panel">
+                                <div class="output-heading">
+                                    <h2>Response</h2>
+                                    <button
+                                        type="button"
+                                        data-action="copy-response"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
+                                <pre data-output="response">
+Response will appear here.</pre
+                                >
+                            </article>
+                        </div>
+                    </section>
+                </template>
+            </section>
+        </main>
+
+        <script src="./app.js"></script>
+    </body>
+</html>

@@ -38,12 +38,26 @@ const inputs = {
   terminalIds: document.querySelector('#terminal-ids'),
 };
 
-const cookieFields = {
+const profileControls = {
+  select: document.querySelector('#profile-select'),
+  name: document.querySelector('#profile-name'),
+  save: document.querySelector('#save-profile'),
+  create: document.querySelector('#new-profile'),
+  delete: document.querySelector('#delete-profile'),
+};
+
+const connectionFields = ['baseUrl', 'clientId', 'apiKey', 'terminalIds'];
+
+const legacyCookieFields = {
   baseUrl: 'payproEcrBaseUrl',
   clientId: 'payproEcrClientId',
   apiKey: 'payproEcrApiKey',
   terminalIds: 'payproEcrTerminalIds',
 };
+
+const profileListCookie = 'payproEcrProfileNames';
+const activeProfileCookie = 'payproEcrActiveProfile';
+const defaultProfileName = 'Default';
 
 const terminalCount = document.querySelector('#terminal-count');
 const dedupeTerminalsButton = document.querySelector('#dedupe-terminals');
@@ -54,6 +68,8 @@ const panelTemplate = document.querySelector('#terminal-panel-template');
 
 const terminalState = new Map();
 let activeTerminalId = '';
+let activeProfileName = defaultProfileName;
+let profileNames = [];
 
 function getCookie(name) {
   const cookie = document.cookie
@@ -73,17 +89,212 @@ function setCookie(name, value) {
   )}; max-age=31536000; path=/; SameSite=Lax`;
 }
 
-function loadConnectionCookies() {
-  Object.entries(cookieFields).forEach(([field, cookieName]) => {
-    const value = getCookie(cookieName).trim();
-    if (value) {
-      inputs[field].value = value;
-    }
+function deleteCookie(name) {
+  document.cookie = `${encodeURIComponent(
+    name,
+  )}=; max-age=0; path=/; SameSite=Lax`;
+}
+
+function normalizeProfileName(name) {
+  return String(name || '').trim();
+}
+
+function compactProfileNames(names) {
+  const seen = new Set();
+  return names
+    .map(normalizeProfileName)
+    .filter(Boolean)
+    .filter((name) => {
+      if (seen.has(name)) {
+        return false;
+      }
+      seen.add(name);
+      return true;
+    });
+}
+
+function getProfileCookieName(profileName, field) {
+  return `payproEcrProfile:${profileName}:${field}`;
+}
+
+function readJsonCookie(name, fallback) {
+  const value = getCookie(name);
+  if (!value) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function readProfileNames() {
+  const names = readJsonCookie(profileListCookie, []);
+  const normalized = Array.isArray(names) ? compactProfileNames(names) : [];
+  return normalized.length ? normalized : [defaultProfileName];
+}
+
+function writeProfileNames(names) {
+  profileNames = compactProfileNames(names);
+  if (!profileNames.length) {
+    profileNames = [defaultProfileName];
+  }
+  setCookie(profileListCookie, JSON.stringify(profileNames));
+}
+
+function readProfileSettings(profileName) {
+  return connectionFields.reduce((settings, field) => {
+    settings[field] = getCookie(getProfileCookieName(profileName, field));
+    return settings;
+  }, {});
+}
+
+function writeProfileSetting(profileName, field, value) {
+  setCookie(getProfileCookieName(profileName, field), value.trim());
+}
+
+function deleteProfileSettings(profileName) {
+  connectionFields.forEach((field) => {
+    deleteCookie(getProfileCookieName(profileName, field));
+  });
+}
+
+function readFormSettings() {
+  return connectionFields.reduce((settings, field) => {
+    settings[field] = inputs[field].value.trim();
+    return settings;
+  }, {});
+}
+
+function writeFormSettings(settings) {
+  connectionFields.forEach((field) => {
+    inputs[field].value = settings[field] || '';
+  });
+}
+
+function saveCurrentProfileSettings() {
+  const settings = readFormSettings();
+  connectionFields.forEach((field) => {
+    writeProfileSetting(activeProfileName, field, settings[field]);
   });
 }
 
 function saveConnectionCookie(field) {
-  setCookie(cookieFields[field], inputs[field].value.trim());
+  writeProfileSetting(activeProfileName, field, inputs[field].value.trim());
+}
+
+function ensureProfile(profileName) {
+  const normalized = normalizeProfileName(profileName) || defaultProfileName;
+  if (!profileNames.includes(normalized)) {
+    writeProfileNames([...profileNames, normalized]);
+  }
+  return normalized;
+}
+
+function renderProfileSelect() {
+  profileControls.select.innerHTML = '';
+  profileNames.forEach((profileName) => {
+    const option = document.createElement('option');
+    option.value = profileName;
+    option.textContent = profileName;
+    profileControls.select.append(option);
+  });
+  profileControls.select.value = activeProfileName;
+  profileControls.name.value = activeProfileName;
+  profileControls.delete.disabled = profileNames.length <= 1;
+}
+
+function activateProfile(profileName) {
+  activeProfileName = ensureProfile(profileName);
+  setCookie(activeProfileCookie, activeProfileName);
+  writeFormSettings(readProfileSettings(activeProfileName));
+  renderProfileSelect();
+  renderTerminalTabs();
+  syncAllPreviews();
+}
+
+function saveProfileFromForm() {
+  activeProfileName = ensureProfile(profileControls.name.value);
+  setCookie(activeProfileCookie, activeProfileName);
+  saveCurrentProfileSettings();
+  renderProfileSelect();
+  renderTerminalTabs();
+  syncAllPreviews();
+}
+
+function getNextProfileName() {
+  let index = profileNames.length + 1;
+  let profileName = `Profile ${index}`;
+  while (profileNames.includes(profileName)) {
+    index += 1;
+    profileName = `Profile ${index}`;
+  }
+  return profileName;
+}
+
+function createBlankProfile() {
+  activeProfileName = ensureProfile(getNextProfileName());
+  setCookie(activeProfileCookie, activeProfileName);
+  writeFormSettings({});
+  saveCurrentProfileSettings();
+  renderProfileSelect();
+  renderTerminalTabs();
+  syncAllPreviews();
+}
+
+function deleteActiveProfile() {
+  if (profileNames.length <= 1) {
+    return;
+  }
+
+  const deletedIndex = profileNames.indexOf(activeProfileName);
+  deleteProfileSettings(activeProfileName);
+  writeProfileNames(
+    profileNames.filter((profileName) => profileName !== activeProfileName),
+  );
+  const nextIndex = Math.max(
+    0,
+    Math.min(deletedIndex, profileNames.length - 1),
+  );
+  activeProfileName = profileNames[nextIndex] || defaultProfileName;
+  setCookie(activeProfileCookie, activeProfileName);
+  writeFormSettings(readProfileSettings(activeProfileName));
+  renderProfileSelect();
+  renderTerminalTabs();
+  syncAllPreviews();
+}
+
+function migrateLegacyProfileCookies() {
+  if (getCookie(profileListCookie)) {
+    return;
+  }
+
+  writeProfileNames([defaultProfileName]);
+  activeProfileName = defaultProfileName;
+  setCookie(activeProfileCookie, activeProfileName);
+
+  connectionFields.forEach((field) => {
+    const value = getCookie(legacyCookieFields[field]).trim();
+    if (value) {
+      writeProfileSetting(defaultProfileName, field, value);
+    }
+  });
+}
+
+function loadConnectionCookies() {
+  migrateLegacyProfileCookies();
+  profileNames = readProfileNames();
+  const savedActiveProfile = normalizeProfileName(
+    getCookie(activeProfileCookie),
+  );
+  activeProfileName = profileNames.includes(savedActiveProfile)
+    ? savedActiveProfile
+    : profileNames[0];
+  setCookie(activeProfileCookie, activeProfileName);
+  writeFormSettings(readProfileSettings(activeProfileName));
+  renderProfileSelect();
 }
 
 function parseTerminalIds() {
@@ -538,6 +749,12 @@ dedupeTerminalsButton.addEventListener('click', () => {
 });
 
 refreshTabsButton.addEventListener('click', renderTerminalTabs);
+profileControls.select.addEventListener('change', () => {
+  activateProfile(profileControls.select.value);
+});
+profileControls.save.addEventListener('click', saveProfileFromForm);
+profileControls.create.addEventListener('click', createBlankProfile);
+profileControls.delete.addEventListener('click', deleteActiveProfile);
 inputs.terminalIds.addEventListener('input', () => {
   saveConnectionCookie('terminalIds');
   updateTerminalCount();

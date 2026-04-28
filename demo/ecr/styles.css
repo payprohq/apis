@@ -249,6 +249,33 @@ button:focus-visible {
   padding-bottom: 4px;
 }
 
+.profile-tools {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 4px;
+}
+
+.profile-tools label {
+  margin-bottom: 0;
+}
+
+.profile-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+}
+
+.profile-actions button {
+  min-height: 34px;
+  padding: 6px 10px;
+}
+
+#delete-profile {
+  border-color: #fecdca;
+  background: #fff1f0;
+  color: var(--danger);
+}
+
 .sidebar label {
   margin-bottom: 0;
 }
@@ -555,6 +582,10 @@ td {
   }
 
   .terminal-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-actions {
     grid-template-columns: 1fr;
   }
 }

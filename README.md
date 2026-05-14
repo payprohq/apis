@@ -28,7 +28,7 @@ Payment app->Client app: Гүйлгээний хариу
 build.gradle файл дээр доорх байдлаар нэмж, sync хийх
 
 ```
-implementation 'mn.lambda:paypro-sdk:1.0.49'
+implementation 'mn.lambda:paypro-sdk:1.0.60'
 ```
 
 ## 1.4. SDK функцуудтай ажиллах

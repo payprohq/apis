@@ -18,8 +18,8 @@ Payment app->Client app: Гүйлгээний хариу
 
 ## 1.2. Жишээ код
 
-[Жишээ код (Java) - Татах](/apis/files/payprodemojava.zip)
-[Жишээ код (Kotlin) - Татах](/apis/files/paypro-demo.zip)
+[Жишээ код (Java) - GitHub](https://github.com/payprohq/paypro-demo-java)
+[Жишээ код (Kotlin) - GitHub](https://github.com/payprohq/paypro-demo)
 
 [==============]
 
@@ -28,7 +28,7 @@ Payment app->Client app: Гүйлгээний хариу
 build.gradle файл дээр доорх байдлаар нэмж, sync хийх
 
 ```
-implementation 'mn.lambda:paypro-sdk:1.0.60'
+implementation 'mn.lambda:paypro-sdk:1.0.63'
 ```
 
 ## 1.4. SDK функцуудтай ажиллах

@@ -427,8 +427,11 @@ api.readCardUID(context, timeout) {
 ```
 class NFCCard(
     val uid: String, // Картын UID
+    val fullUid: String, // Картын бүтэн UID
 )
 ```
+
+`uid` нь картын үндсэн сериал дугаар, `fullUid` нь төхөөрөмжөөс ирсэн бүтэн UID утга байна. Зарим төхөөрөмж дээр `fullUid` нь `uid`-тай ижил утгатай байж болно.
 
 ### 1.12.2. NFC карт - Амжилтгүй
 
